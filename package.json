@@ -9,12 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "html-to-image": "^1.11.11",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "@google/genai": "^1.28.0",
-    "html-to-image": "^1.11.11"
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.157",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",

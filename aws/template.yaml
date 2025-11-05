@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  rift-scribe-backend
+  Backend infrastructure for the RiftScribe AI Storyteller application.
+
+Resources:
+  RiftScribeApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowMethods: "'POST, OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+
+  MatchDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: rift-rewind-match-history-dataset-2025 # Example name
+
+  GeneratedImagesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: rift-scribe-generated-images-2025 # Example name
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - GET
+            AllowedOrigins:
+              - "*"
+
+  SagaCacheTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: RiftScribeSagaCache
+      AttributeDefinitions:
+        - AttributeName: summonerName
+          AttributeType: S
+      KeySchema:
+        - AttributeName: summonerName
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  GenerateSagaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda/
+      Handler: handler.handler
+      Runtime: nodejs18.x
+      MemorySize: 512
+      Timeout: 120 # Increased timeout for AI generation
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref MatchDataBucket
+        - S3WritePolicy:
+            BucketName: !Ref GeneratedImagesBucket
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SagaCacheTable
+        - Statement:
+          - Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+            Resource: '*'
+      Environment:
+        Variables:
+          GENERATED_IMAGES_BUCKET: !Ref GeneratedImagesBucket # For production, scope this down to specific models
+      Events:
+        GenerateSagaApi:
+          Type: Api
+          Properties:
+            Path: /generate-saga
+            Method: post
+            RestApiId: !Ref RiftScribeApi
+
+Outputs:
+  RiftScribeApiEndpoint:
+    Description: "API Gateway endpoint URL for the RiftScribe backend"
+    Value: !Sub "https://${RiftScribeApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/generate-saga/"
+  GeneratedImagesBucketName:
+    Description: "Name of the S3 bucket for generated images"
+    Value: !Ref GeneratedImagesBucket

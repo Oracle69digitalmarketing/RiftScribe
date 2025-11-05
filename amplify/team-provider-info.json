@@ -1,0 +1,15 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-riftscribe-dev-de467-authRole",
+      "UnauthRoleArn": "arn:aws:iam::114501972554:role/amplify-riftscribe-dev-de467-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::114501972554:role/amplify-riftscribe-dev-de467-authRole",
+      "Region": "eu-central-1",
+      "DeploymentBucketName": "amplify-riftscribe-dev-de467-deployment",
+      "UnauthRoleName": "amplify-riftscribe-dev-de467-unauthRole",
+      "StackName": "amplify-riftscribe-dev-de467",
+      "StackId": "arn:aws:cloudformation:eu-central-1:114501972554:stack/amplify-riftscribe-dev-de467/2d330730-ba34-11f0-9653-0a191d9e0b05",
+      "AmplifyAppId": "d3oidytgkvbxox"
+    }
+  }
+}
