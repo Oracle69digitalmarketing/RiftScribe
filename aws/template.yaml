@@ -47,7 +47,7 @@ Resources:
   GenerateSagaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ../lambda/
+      CodeUri: lambda/
       Handler: handler.handler
       Runtime: nodejs18.x
       MemorySize: 512
