@@ -1,8 +1,0 @@
-{
-  "name": "riftscribe-lambda",
-  "version": "1.0.0",
-  "dependencies": {
-    "@aws-sdk/client-bedrock-runtime": "^3.583.0",
-    "@aws-sdk/client-s3": "^3.583.0"
-  }
-}
