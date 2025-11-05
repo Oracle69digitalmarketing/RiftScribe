@@ -1,10 +1,10 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { Bedrock } from 'aws-sdk';
+import { BedrockRuntime, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 import { PlayerInsights } from '../common/dataProcessor';
 import { Persona } from '../../personaData';
-import { Saga, SagaChapter } from '../../sagaData';
+import { Saga } from '../../sagaData';
 
-const bedrock = new Bedrock();
+const bedrock = new BedrockRuntime();
 
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
     console.log("Lambda invoked with event body:", event.body);
@@ -65,22 +65,23 @@ async function generateSagaContent(summonerName: string, persona: Persona, insig
 
     const body = { prompt, max_tokens_to_sample: 4000 };
     const modelId = "anthropic.claude-v2";
-    const params: Bedrock.InvokeModelInput = {
+    const params = {
         body: JSON.stringify(body),
         modelId,
         contentType: 'application/json',
         accept: 'application/json',
     };
 
-    const response = await bedrock.invokeModel(params).promise();
-    const responseText = response.body.toString('utf-8');
+    const command = new InvokeModelCommand(params);
+    const response = await bedrock.send(command);
+    const responseText = new TextDecoder().decode(response.body);
     const sagaContent = JSON.parse(responseText);
     return { ...sagaContent, summonerName };
 }
 
 async function generateChapterImage(imagePrompt: string): Promise<string> {
     const modelId = 'stability.stable-diffusion-xl-v0';
-    const params: Bedrock.InvokeModelInput = {
+    const params = {
         body: JSON.stringify({
             text_prompts: [{ text: imagePrompt }],
             cfg_scale: 10,
@@ -92,8 +93,9 @@ async function generateChapterImage(imagePrompt: string): Promise<string> {
         accept: 'application/json',
     };
 
-    const response = await bedrock.invokeModel(params).promise();
-    const responseBody = JSON.parse(response.body.toString('utf-8'));
+    const command = new InvokeModelCommand(params);
+    const response = await bedrock.send(command);
+    const responseBody = JSON.parse(new TextDecoder().decode(response.body));
     const base64Image = responseBody.artifacts[0].base64;
     return `data:image/png;base64,${base64Image}`;
 }
