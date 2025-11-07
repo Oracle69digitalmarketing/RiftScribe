@@ -1,6 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { BedrockRuntime, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
-import { PlayerInsights } from '../common/dataProcessor';
+import { PlayerInsights } from '../../common/dataProcessor';
 import { Persona } from '../../personaData';
 import { Saga } from '../../sagaData';
 
@@ -75,7 +75,8 @@ async function generateSagaContent(summonerName: string, persona: Persona, insig
     const command = new InvokeModelCommand(params);
     const response = await bedrock.send(command);
     const responseText = new TextDecoder().decode(response.body);
-    const sagaContent = JSON.parse(responseText);
+    const responseBody = JSON.parse(responseText);
+    const sagaContent = JSON.parse(responseBody.completion);
     return { ...sagaContent, summonerName };
 }
 
