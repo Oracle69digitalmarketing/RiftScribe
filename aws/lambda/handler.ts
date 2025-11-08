@@ -1,10 +1,13 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { BedrockRuntime, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
-import { PlayerInsights } from '../../common/dataProcessor';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { analyzeMatches, PlayerInsights, Match } from './dataProcessor';
 import { Persona } from '../../personaData';
 import { Saga } from '../../sagaData';
 
 const bedrock = new BedrockRuntime();
+const s3 = new S3Client({});
+const matchDataBucket = process.env.MATCH_DATA_BUCKET;
 
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
     console.log("Lambda invoked with event body:", event.body);
@@ -17,7 +20,17 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     }
 
     try {
-        const { summonerName, persona, insights } = JSON.parse(event.body) as { summonerName: string, persona: Persona, insights: PlayerInsights };
+        const { summonerName, persona } = JSON.parse(event.body) as { summonerName: string, persona: Persona };
+
+        const getObjectCommand = new GetObjectCommand({
+            Bucket: matchDataBucket,
+            Key: 'matches.json',
+        });
+        const s3Response = await s3.send(getObjectCommand);
+        const matchesString = await s3Response.Body?.transformToString();
+        const matches: Match[] = matchesString ? JSON.parse(matchesString) : [];
+
+        const insights = analyzeMatches(matches, summonerName);
         const sagaWithoutImages = await generateSagaContent(summonerName, persona, insights);
         const imagePromises = sagaWithoutImages.chapters.map(chapter => generateChapterImage(chapter.imagePrompt));
         const imageUrls = await Promise.all(imagePromises);
@@ -27,7 +40,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         return {
             statusCode: 200,
             headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-            body: JSON.stringify({ saga: finalSaga }),
+            body: JSON.stringify({ saga: finalSaga, insights: insights }),
         };
     } catch (error) {
         console.error("Error in Lambda handler:", error);
