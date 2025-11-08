@@ -1,3 +1,5 @@
+import { PlayerInsights } from '../../common/dataProcessor';
+import { Match, Participant } from '../../common/sampleMatchData';
 export interface Participant {
     summonerName: string;
     championName: string;

@@ -68,6 +68,8 @@ Resources:
           - Effect: Allow
             Action:
               - bedrock:InvokeModel
+              - aws-marketplace:ViewSubscriptions
+              - aws-marketplace:Subscribe
             Resource: '*'
       Environment:
         Variables:
