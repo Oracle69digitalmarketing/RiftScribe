@@ -87,7 +87,11 @@ async function generateSagaContent(summonerName: string, persona: Persona, insig
             }]
         }]
     };
+
+    const modelId = "anthropic.claude-sonnet-4-5-20250929-v1:0";
+
     const modelId = "anthropic.claude-3-5-sonnet-20240620-v1:0";
+
     const params = {
         body: JSON.stringify(body),
         modelId,
@@ -101,7 +105,10 @@ async function generateSagaContent(summonerName: string, persona: Persona, insig
     const responseBody = JSON.parse(responseText);
     // The response from Claude 3 is in a different format
     const sagaContent = JSON.parse(responseBody.content[0].text);
+
+
     const sagaContent = JSON.parse(responseBody.completion);
+
 
     return { ...sagaContent, summonerName };
 }
