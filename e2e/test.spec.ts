@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('RiftScribe E2E Test', async ({ page }) => {
-  await page.goto('http://localhost:5173');
+  await page.goto('http://localhost:3001');
 
   // Fill in the summoner name
   await page.fill('#summonerName', 'PlayerOne');
