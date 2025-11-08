@@ -1,8 +1,7 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { toPng } from 'html-to-image';
 import { Saga } from './sagaData';
-// CORRECTED PATH: Pointing to the file inside aws/lambda/
-import { PlayerInsights } from './aws/lambda/dataProcessor';
+import { PlayerInsights } from './common/dataProcessor';
 
 interface ShareCardProps { saga: Saga; insights: PlayerInsights; onClose: () => void; }
 
