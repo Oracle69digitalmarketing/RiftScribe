@@ -76,8 +76,18 @@ async function generateSagaContent(summonerName: string, persona: Persona, insig
         Return a JSON object with two keys: "title" (a grand, epic title for the saga) and "chapters" (an array of objects, where each object has "title", "text", and "imagePrompt" keys). The imagePrompt must be a detailed, dramatic prompt for an AI image generator to create a fantasy art illustration for the chapter.
     `;
 
-    const body = { prompt, max_tokens_to_sample: 4000 };
-    const modelId = "anthropic.claude-v2";
+    const body = {
+        anthropic_version: "bedrock-2023-05-31",
+        max_tokens: 4000,
+        messages: [{
+            role: "user",
+            content: [{
+                type: "text",
+                text: prompt
+            }]
+        }]
+    };
+    const modelId = "anthropic.claude-3-5-sonnet-20240620-v1:0";
     const params = {
         body: JSON.stringify(body),
         modelId,
@@ -89,7 +99,10 @@ async function generateSagaContent(summonerName: string, persona: Persona, insig
     const response = await bedrock.send(command);
     const responseText = new TextDecoder().decode(response.body);
     const responseBody = JSON.parse(responseText);
+    // The response from Claude 3 is in a different format
+    const sagaContent = JSON.parse(responseBody.content[0].text);
     const sagaContent = JSON.parse(responseBody.completion);
+
     return { ...sagaContent, summonerName };
 }
 

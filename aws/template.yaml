@@ -49,6 +49,11 @@ Resources:
     Properties:
       CodeUri: lambda/
       Handler: handler.handler
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints:
+          - handler.ts
       Runtime: nodejs18.x
       MemorySize: 512
       Timeout: 120
