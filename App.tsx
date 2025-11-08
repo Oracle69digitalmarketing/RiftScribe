@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Persona } from './personaData';
 import { Saga } from './sagaData';
+
 import { PlayerInsights } from './common/dataProcessor';
 import { generateSaga } from './server/api'; 
 
@@ -17,7 +18,7 @@ const App: React.FC = () => {
     const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
     const [appState, setAppState] = useState<AppState>('FORM');
     const [saga, setSaga] = useState<Saga | null>(null);
-    const [insights, setInsights] = useState<PlayerInsights | null>(null);
+    const [insights, setInsights] = useState(null);
     const [error, setError] = useState<string | null>(null);
     const [loadingMessage, setLoadingMessage] = useState<string>('');
 

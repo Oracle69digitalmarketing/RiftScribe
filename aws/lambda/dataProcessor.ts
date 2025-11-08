@@ -1,5 +1,33 @@
 import { PlayerInsights } from '../../common/dataProcessor';
 import { Match, Participant } from '../../common/sampleMatchData';
+export interface Participant {
+    summonerName: string;
+    championName: string;
+    kills: number;
+    deaths: number;
+    assists: number;
+    win: boolean;
+    teamId: number;
+}
+
+export interface Match {
+    metadata: {
+        matchId: string;
+    };
+    info: {
+        gameCreation: number;
+        participants: Participant[];
+    };
+}
+
+export interface ChampionWinRate {
+    name: string;
+    wins: number;
+    games: number;
+    winRate: string;
+}
+
+import { PlayerInsights } from '../../common/dataProcessor';
 
 export function analyzeMatches(matches: Match[], summonerName: string): PlayerInsights {
     if (!matches || matches.length === 0) {
