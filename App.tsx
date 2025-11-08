@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Persona } from './personaData';
 import { Saga } from './sagaData';
-import { PlayerInsights, analyzeMatches } from './common/dataProcessor';
-import { matches as sampleMatches } from './common/sampleMatchData';
+import { PlayerInsights } from './common/dataProcessor';
 import { generateSaga } from './server/api'; 
 
 // Import UI components
@@ -42,10 +41,9 @@ const App: React.FC = () => {
         setError(null);
         setAppState('LOADING');
         try {
-            const calculatedInsights: PlayerInsights = analyzeMatches(sampleMatches, summonerName);
-            setInsights(calculatedInsights);
-            const generatedSaga = await generateSaga(summonerName, selectedPersona, calculatedInsights);
-            setSaga(generatedSaga);
+            const { saga, insights } = await generateSaga(summonerName, selectedPersona);
+            setSaga(saga);
+            setInsights(insights);
             setAppState('RESULT');
         } catch (err) {
             console.error("Saga generation failed:", err);

@@ -63,10 +63,13 @@ Resources:
           - Effect: Allow
             Action:
               - bedrock:InvokeModel
+              - aws-marketplace:ViewSubscriptions
+              - aws-marketplace:Subscribe
             Resource: '*'
       Environment:
         Variables:
-          GENERATED_IMAGES_BUCKET: !Ref GeneratedImagesBucket # For production, scope this down to specific models
+          GENERATED_IMAGES_BUCKET: !Ref GeneratedImagesBucket
+          MATCH_DATA_BUCKET: !Ref MatchDataBucket
       Events:
         GenerateSagaApi:
           Type: Api
@@ -74,6 +77,11 @@ Resources:
             Path: /generate-saga
             Method: post
             RestApiId: !Ref RiftScribeApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints:
+          - handler.ts
 
 Outputs:
   RiftScribeApiEndpoint:

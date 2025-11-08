@@ -4,7 +4,7 @@ import { Saga } from '../sagaData';
 
 const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT;
 
-export async function generateSaga(summonerName: string, persona: Persona, insights: PlayerInsights): Promise<Saga> {
+export async function generateSaga(summonerName: string, persona: Persona): Promise<{ saga: Saga, insights: PlayerInsights }> {
     
     console.log("Calling LIVE AWS backend at:", API_ENDPOINT);
 
@@ -12,7 +12,7 @@ export async function generateSaga(summonerName: string, persona: Persona, insig
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ summonerName, persona, insights }),
+            body: JSON.stringify({ summonerName, persona }),
         });
 
         if (!response.ok) {
@@ -22,7 +22,7 @@ export async function generateSaga(summonerName: string, persona: Persona, insig
         }
 
         const responseBody = await response.json();
-        return responseBody.saga;
+        return responseBody;
 
     } catch (error) {
         console.error("Error calling the live backend:", error);

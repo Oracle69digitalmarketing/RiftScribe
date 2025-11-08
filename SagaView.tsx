@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Saga } from './sagaData';
-// CORRECTED PATH: Pointing to the file inside aws/lambda/
-import { PlayerInsights } from './aws/lambda/dataProcessor';
+import { PlayerInsights } from './common/dataProcessor';
 import ShareCard from './ShareCard';
 
 interface SagaViewProps { saga: Saga; insights: PlayerInsights; onReset: () => void; }
