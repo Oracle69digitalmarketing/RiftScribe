@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Persona } from './personaData';
 import { Saga } from './sagaData';
-import { PlayerInsights, analyzeMatches } from './common/dataProcessor';
-import { matches as sampleMatches } from './common/sampleMatchData';
 import { generateSaga } from './server/api'; 
 
 // Import UI components
@@ -18,7 +16,7 @@ const App: React.FC = () => {
     const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
     const [appState, setAppState] = useState<AppState>('FORM');
     const [saga, setSaga] = useState<Saga | null>(null);
-    const [insights, setInsights] = useState<PlayerInsights | null>(null);
+    const [insights, setInsights] = useState(null);
     const [error, setError] = useState<string | null>(null);
     const [loadingMessage, setLoadingMessage] = useState<string>('');
 
@@ -42,10 +40,9 @@ const App: React.FC = () => {
         setError(null);
         setAppState('LOADING');
         try {
-            const calculatedInsights: PlayerInsights = analyzeMatches(sampleMatches, summonerName);
-            setInsights(calculatedInsights);
-            const generatedSaga = await generateSaga(summonerName, selectedPersona, calculatedInsights);
-            setSaga(generatedSaga);
+            const { saga, insights } = await generateSaga(summonerName, selectedPersona);
+            setSaga(saga);
+            setInsights(insights);
             setAppState('RESULT');
         } catch (err) {
             console.error("Saga generation failed:", err);

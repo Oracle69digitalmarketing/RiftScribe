@@ -49,6 +49,11 @@ Resources:
     Properties:
       CodeUri: lambda/
       Handler: handler.handler
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints:
+          - handler.ts
       Runtime: nodejs18.x
       MemorySize: 512
       Timeout: 120 # Increased timeout for AI generation
@@ -66,7 +71,8 @@ Resources:
             Resource: '*'
       Environment:
         Variables:
-          GENERATED_IMAGES_BUCKET: !Ref GeneratedImagesBucket # For production, scope this down to specific models
+          GENERATED_IMAGES_BUCKET: !Ref GeneratedImagesBucket
+          MATCH_DATA_BUCKET: !Ref MatchDataBucket
       Events:
         GenerateSagaApi:
           Type: Api
