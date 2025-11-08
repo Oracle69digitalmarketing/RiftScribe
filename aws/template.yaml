@@ -17,12 +17,12 @@ Resources:
   MatchDataBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: rift-rewind-match-history-dataset-2025 # Example name
+      BucketName: rift-rewind-match-history-dataset-2025
 
   GeneratedImagesBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: rift-scribe-generated-images-2025 # Example name
+      BucketName: rift-scribe-generated-images-2025
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
@@ -49,14 +49,9 @@ Resources:
     Properties:
       CodeUri: lambda/
       Handler: handler.handler
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        EntryPoints:
-          - handler.ts
       Runtime: nodejs18.x
       MemorySize: 512
-      Timeout: 120 # Increased timeout for AI generation
+      Timeout: 120
       Policies:
         - S3ReadPolicy:
             BucketName: !Ref MatchDataBucket
@@ -80,6 +75,11 @@ Resources:
             Path: /generate-saga
             Method: post
             RestApiId: !Ref RiftScribeApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints:
+          - handler.ts
 
 Outputs:
   RiftScribeApiEndpoint:
