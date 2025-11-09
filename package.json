@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.927.0",
     "@playwright/test": "^1.56.1",
     "html-to-image": "^1.11.11",
     "react": "^19.2.0",
@@ -16,9 +17,9 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.157",
-    "@types/node": "^22.14.0",
+    "@types/node": "^24.10.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "typescript": "^5.9.3",
+    "vite": "^7.2.2"
   }
 }
