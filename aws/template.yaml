@@ -4,6 +4,12 @@ Description: >
   rift-scribe-backend
   Backend infrastructure for the RiftScribe AI Storyteller application.
 
+Parameters:
+  RiotApiKey:
+    Type: String
+    Description: Your Riot Games API key for fetching live player data.
+    NoEcho: true
+
 Resources:
   RiftScribeApi:
     Type: AWS::Serverless::Api
@@ -68,6 +74,7 @@ Resources:
         Variables:
           GENERATED_IMAGES_BUCKET: !Ref GeneratedImagesBucket
           MATCH_DATA_BUCKET: !Ref MatchDataBucket
+          RIOT_API_KEY: !Ref RiotApiKey
       Events:
         GenerateSagaApi:
           Type: Api

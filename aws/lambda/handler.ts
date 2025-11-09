@@ -1,14 +1,13 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { BedrockRuntime, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { analyzeMatches, PlayerInsights } from './dataProcessor';
 import { Match } from '../../common/sampleMatchData';
 import { Persona } from '../../personaData';
 import { Saga } from '../../sagaData';
+import axios from 'axios';
 
 const bedrock = new BedrockRuntime();
-const s3 = new S3Client({});
-const matchDataBucket = process.env.MATCH_DATA_BUCKET;
+const riotApiKey = process.env.RIOT_API_KEY;
 
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
     console.log("Lambda invoked with event body:", event.body);
@@ -20,16 +19,19 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         };
     }
 
+    if (!riotApiKey) {
+        console.error("Riot API key is not configured.");
+        return {
+            statusCode: 500,
+            headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+            body: JSON.stringify({ message: "Server configuration error: API key is missing." }),
+        };
+    }
+
     try {
         const { summonerName, persona } = JSON.parse(event.body) as { summonerName: string, persona: Persona };
 
-        const getObjectCommand = new GetObjectCommand({
-            Bucket: matchDataBucket,
-            Key: 'matches.json',
-        });
-        const s3Response = await s3.send(getObjectCommand);
-        const matchesString = await s3Response.Body?.transformToString();
-        const matches: Match[] = matchesString ? JSON.parse(matchesString) : [];
+        const matches = await fetchMatchesFromRiotApi(summonerName);
 
         const insights = analyzeMatches(matches, summonerName);
         const sagaWithoutImages = await generateSagaContent(summonerName, persona, insights);
@@ -130,6 +132,48 @@ async function generateSagaContent(summonerName: string, persona: Persona, insig
     // This part should be unreachable if the loop logic is correct, but TypeScript needs it
     throw new Error("Exited saga generation loop unexpectedly.");
 }
+
+async function fetchMatchesFromRiotApi(summonerName: string, count: number = 20): Promise<Match[]> {
+    const REGION = 'americas'; // Regional routing for Riot API
+    const PLATFORM = 'na1'; // Platform for summoner-specific calls
+
+    try {
+        // Step 1: Get PUUID from summoner name
+        const puuidUrl = `https://${PLATFORM}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(summonerName)}`;
+        const puuidResponse = await axios.get(puuidUrl, { headers: { 'X-Riot-Token': riotApiKey } });
+        const puuid = puuidResponse.data.puuid;
+        if (!puuid) {
+            throw new Error("PUUID not found for summoner.");
+        }
+
+        // Step 2: Get match IDs
+        const matchIdsUrl = `https://${REGION}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?count=${count}`;
+        const matchIdsResponse = await axios.get(matchIdsUrl, { headers: { 'X-Riot-Token': riotApiKey } });
+        const matchIds = matchIdsResponse.data;
+
+        // Step 3: Get details for each match
+        const matchPromises = matchIds.map((matchId: string) => {
+            const matchUrl = `https://${REGION}.api.riotgames.com/lol/match/v5/matches/${matchId}`;
+            return axios.get(matchUrl, { headers: { 'X-Riot-Token': riotApiKey } });
+        });
+
+        const matchResponses = await Promise.all(matchPromises);
+        const matches = matchResponses.map(res => res.data);
+
+        return matches;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error(`Riot API Error: ${error.response?.status} - ${JSON.stringify(error.response?.data)}`);
+            const status = error.response?.status;
+            if (status === 404) throw new Error(`Summoner "${summonerName}" not found.`);
+            if (status === 403) throw new Error("Riot API key is invalid or has expired.");
+        } else {
+            console.error("An unexpected error occurred while fetching match data:", error);
+        }
+        throw new Error("Failed to fetch match data from Riot API.");
+    }
+}
+
 
 async function generateChapterImage(imagePrompt: string): Promise<string> {
     const modelId = 'stability.stable-diffusion-xl-v0';

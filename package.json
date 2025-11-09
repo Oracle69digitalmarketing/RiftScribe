@@ -11,6 +11,7 @@
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.927.0",
     "@playwright/test": "^1.56.1",
+    "axios": "^1.7.2",
     "html-to-image": "^1.11.11",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
