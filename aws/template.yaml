@@ -53,7 +53,7 @@ Resources:
   GenerateSagaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: lambda/lambda.zip
+      CodeUri: lambda/
       Handler: handler.handler
       Runtime: nodejs18.x
       Policies:
@@ -88,7 +88,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         EntryPoints:
-          - handler.ts
+          - handler
 Outputs:
   RiftScribeApiEndpoint:
     Description: "API Gateway endpoint URL for the RiftScribe backend"
