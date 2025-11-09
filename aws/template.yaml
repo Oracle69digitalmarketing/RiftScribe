@@ -4,6 +4,12 @@ Description: >
   rift-scribe-backend
   Backend infrastructure for the RiftScribe AI Storyteller application.
 
+Parameters:
+  RiotApiKey:
+    Type: String
+    Description: Your Riot Games API key for fetching live player data.
+    NoEcho: true
+
 Resources:
   RiftScribeApi:
     Type: AWS::Serverless::Api
@@ -47,7 +53,7 @@ Resources:
   GenerateSagaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: lambda/lambda.zip
+      CodeUri: lambda/
       Handler: handler.handler
       Runtime: nodejs18.x
       Policies:
@@ -68,6 +74,7 @@ Resources:
         Variables:
           GENERATED_IMAGES_BUCKET: !Ref GeneratedImagesBucket
           MATCH_DATA_BUCKET: !Ref MatchDataBucket
+          RIOT_API_KEY: !Ref RiotApiKey
       Events:
         GenerateSagaApi:
           Type: Api
@@ -81,7 +88,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         EntryPoints:
-          - handler.ts
+          - handler
 Outputs:
   RiftScribeApiEndpoint:
     Description: "API Gateway endpoint URL for the RiftScribe backend"
