@@ -1,5 +1,5 @@
 import { PlayerInsights } from '../../common/dataProcessor';
-import { Match, Participant } from '../../common/sampleMatchData';
+
 export interface Participant {
     summonerName: string;
     championName: string;
@@ -19,15 +19,6 @@ export interface Match {
         participants: Participant[];
     };
 }
-
-export interface ChampionWinRate {
-    name: string;
-    wins: number;
-    games: number;
-    winRate: string;
-}
-
-import { PlayerInsights } from '../../common/dataProcessor';
 
 export function analyzeMatches(matches: Match[], summonerName: string): PlayerInsights {
     if (!matches || matches.length === 0) {
@@ -51,8 +42,11 @@ export function analyzeMatches(matches: Match[], summonerName: string): PlayerIn
     let bestKDAValue = -1;
     let bestKDA = { champion: 'Unknown', kda: '0.00' };
 
+    // Sort matches by game creation time, oldest to newest
+    matches.sort((a, b) => a.info.gameCreation - b.info.gameCreation);
+
     for (const match of matches) {
-        const player = match.info.participants.find(p => p.summonerName.toLowerCase() === summonerName.toLowerCase());
+        const player = match.info.participants.find(p => p.summonerName === summonerName);
         if (!player) continue;
 
         if (player.win) {
@@ -83,6 +77,7 @@ export function analyzeMatches(matches: Match[], summonerName: string): PlayerIn
         }
     }
 
+    // Final check for the winning streak
     longestWinningStreak = Math.max(longestWinningStreak, currentWinningStreak);
 
     const mostPlayedChampions = Object.entries(championStats)
