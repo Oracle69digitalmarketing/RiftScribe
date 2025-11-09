@@ -10,3 +10,8 @@ image_repositories = []
 
 [default.global.parameters]
 region = "eu-central-1"
+
+[default.build.parameters]
+runtime = "nodejs18.x"
+cached = true
+parallel = true

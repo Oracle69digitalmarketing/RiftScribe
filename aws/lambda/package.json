@@ -2,12 +2,15 @@
   "name": "rift-scribe-lambda",
   "version": "1.0.0",
   "description": "Dependencies for the RiftScribe Lambda function",
+  "scripts": {
+    "build": "esbuild handler.ts --bundle --platform=node --target=node18 --outfile=dist/handler.js"
+  },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.585.0",
     "@aws-sdk/client-s3": "^3.585.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.138",
-    "esbuild": "^0.21.4"
+    "esbuild": "^0.21.5"
   }
 }

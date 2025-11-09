@@ -47,16 +47,9 @@ Resources:
   GenerateSagaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: lambda/
+      CodeUri: lambda/lambda.zip
       Handler: handler.handler
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        EntryPoints:
-          - handler.ts
       Runtime: nodejs18.x
-      MemorySize: 512
-      Timeout: 120
       Policies:
         - S3ReadPolicy:
             BucketName: !Ref MatchDataBucket
@@ -82,12 +75,13 @@ Resources:
             Path: /generate-saga
             Method: post
             RestApiId: !Ref RiftScribeApi
+    MemorySize: 512
+    Timeout: 120
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
         EntryPoints:
           - handler.ts
-
 Outputs:
   RiftScribeApiEndpoint:
     Description: "API Gateway endpoint URL for the RiftScribe backend"
