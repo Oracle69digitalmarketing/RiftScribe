@@ -97,14 +97,38 @@ async function generateSagaContent(summonerName: string, persona: Persona, insig
         accept: 'application/json',
     };
 
-    const command = new InvokeModelCommand(params);
-    const response = await bedrock.send(command);
-    const responseText = new TextDecoder().decode(response.body);
-    const responseBody = JSON.parse(responseText);
-    const sagaContent = JSON.parse(responseBody.content[0].text);
+    let attempts = 0;
+    const maxAttempts = 3;
 
+    while (attempts < maxAttempts) {
+        try {
+            const command = new InvokeModelCommand(params);
+            const response = await bedrock.send(command);
+            const responseText = new TextDecoder().decode(response.body);
+            const responseBody = JSON.parse(responseText);
 
-    return { ...sagaContent, summonerName };
+            // The actual content from the model is in a nested structure
+            const modelOutput = responseBody.content[0].text;
+
+            // Attempt to parse the nested JSON
+            const sagaContent = JSON.parse(modelOutput);
+
+            // If parsing is successful, return the saga
+            return { ...sagaContent, summonerName };
+
+        } catch (error) {
+            attempts++;
+            console.error(`Attempt ${attempts} failed: Error parsing AI model response.`, error);
+            if (attempts >= maxAttempts) {
+                throw new Error("Failed to generate and parse saga content after multiple attempts.");
+            }
+            // Optional: add a small delay before retrying
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+    }
+
+    // This part should be unreachable if the loop logic is correct, but TypeScript needs it
+    throw new Error("Exited saga generation loop unexpectedly.");
 }
 
 async function generateChapterImage(imagePrompt: string): Promise<string> {
