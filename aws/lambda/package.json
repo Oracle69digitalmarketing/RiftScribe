@@ -1,16 +1,14 @@
 {
-  "name": "rift-scribe-lambda",
+  "name": "riftscribe-lambda",
   "version": "1.0.0",
-  "description": "Dependencies for the RiftScribe Lambda function",
+  "description": "Dependencies for the RiftScribe backend Lambda function.",
+  "main": "handler.js",
   "scripts": {
-    "build": "esbuild handler.ts --bundle --platform=node --target=node18 --outfile=dist/handler.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-bedrock-runtime": "^3.585.0",
-    "@aws-sdk/client-s3": "^3.585.0"
-  },
-  "devDependencies": {
-    "@types/aws-lambda": "^8.10.138",
-    "esbuild": "^0.21.5"
+    "axios": "^1.7.2"
   }
 }
