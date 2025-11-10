@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Persona } from './personaData';
 import { Saga } from './sagaData';
 
-import { PlayerInsights } from './common/dataProcessor';
 import { generateSaga } from './server/api'; 
 
 // Import UI components
