@@ -1,15 +1,14 @@
 {
-  "name": "riftscribe-lambda",
+  "name": "riftscribe-aws",
   "version": "1.0.0",
   "description": "",
-  "main": "handler.ts",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "@aws-sdk/client-bedrock-runtime": "^3.927.0",
-    "axios": "^1.13.2"
+  "devDependencies": {
+    "esbuild": "^0.27.0"
   }
 }
