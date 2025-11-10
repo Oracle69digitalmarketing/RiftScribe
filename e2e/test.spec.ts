@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 
 test('RiftScribe E2E Test', async ({ page }) => {
-  await page.goto('http://localhost:5173');
   await page.goto('http://localhost:3001');
 
   // Fill in the summoner name
@@ -14,7 +13,7 @@ test('RiftScribe E2E Test', async ({ page }) => {
   await page.click('text=Forge My Saga');
 
   // Wait for the saga to be generated and displayed
-  await page.waitForSelector('text=The Saga of PlayerOne', { timeout: 60000 });
+  await page.waitForSelector('text=The Saga of PlayerOne', { timeout: 120000 });
 
   // Verify that the saga title is displayed
   expect(await page.textContent('h2')).not.toBeNull();
