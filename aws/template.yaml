@@ -1,104 +1,169 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: >
-  rift-scribe-backend
-  Backend infrastructure for the RiftScribe AI Storyteller application.
+Description: RiftScribe Serverless Backend
 
 Parameters:
+  MatchDataBucketName:
+    Type: String
+  GeneratedImagesBucketName:
+    Type: String
+  SagaCacheTableName:
+    Type: String
   RiotApiKey:
     Type: String
-    Description: Your Riot Games API key for fetching live player data.
     NoEcho: true
-    Description: "Your Riot Games API key for fetching live player data. This is a required parameter."
-    NoEcho: true
-  ForceRedeploy:
-    Type: String
-    Description: "A dummy parameter to force redeployment."
-    Default: "true"
+    Description: Riot Games API key for fetching player data
 
 Resources:
-  RiftScribeApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: Prod
-      Cors:
-        AllowMethods: "'POST, OPTIONS'"
-        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-        AllowOrigin: "'*'"
 
-  MatchDataBucket:
-    Type: AWS::S3::Bucket
+  ####################################################
+  # IAM Role for Lambda
+  ####################################################
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
     Properties:
-      BucketName: rift-rewind-match-history-dataset-2025
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: RiftScribeLambdaPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub arn:aws:s3:::${MatchDataBucketName}
+                  - !Sub arn:aws:s3:::${MatchDataBucketName}/*
+                  - !Sub arn:aws:s3:::${GeneratedImagesBucketName}
+                  - !Sub arn:aws:s3:::${GeneratedImagesBucketName}/*
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SagaCacheTableName}
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
 
-  GeneratedImagesBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: rift-scribe-generated-images-2025
-      CorsConfiguration:
-        CorsRules:
-          - AllowedHeaders:
-              - "*"
-            AllowedMethods:
-              - GET
-            AllowedOrigins:
-              - "*"
-
-  SagaCacheTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: RiftScribeSagaCache
-      AttributeDefinitions:
-        - AttributeName: summonerName
-          AttributeType: S
-      KeySchema:
-        - AttributeName: summonerName
-          KeyType: HASH
-      BillingMode: PAY_PER_REQUEST
-
-  GenerateSagaFunction:
+  ####################################################
+  # Lambda Function
+  ####################################################
+  RiftScribeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: lambda/
-      Handler: handler.handler
       Runtime: nodejs18.x
-      Policies:
-        - S3ReadPolicy:
-            BucketName: !Ref MatchDataBucket
-        - S3WritePolicy:
-            BucketName: !Ref GeneratedImagesBucket
-        - DynamoDBCrudPolicy:
-            TableName: !Ref SagaCacheTable
-        - Statement:
-          - Effect: Allow
-            Action:
-              - bedrock:InvokeModel
-              - aws-marketplace:ViewSubscriptions
-              - aws-marketplace:Subscribe
-            Resource: '*'
+      Handler: handler.handler
+      CodeUri: lambda/
+      Timeout: 30
+      Role: !GetAtt LambdaExecutionRole.Arn
       Environment:
         Variables:
-          GENERATED_IMAGES_BUCKET: !Ref GeneratedImagesBucket
-          MATCH_DATA_BUCKET: !Ref MatchDataBucket
+          MATCH_DATA_BUCKET: !Ref MatchDataBucketName
+          GENERATED_IMAGES_BUCKET: !Ref GeneratedImagesBucketName
+          SAGA_CACHE_TABLE: !Ref SagaCacheTableName
           RIOT_API_KEY: !Ref RiotApiKey
-      Events:
-        GenerateSagaApi:
-          Type: Api
-          Properties:
-            Path: /generate-saga
-            Method: post
-            RestApiId: !Ref RiftScribeApi
-    MemorySize: 512
-    Timeout: 120
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        EntryPoints:
-          - handler
+
+  ####################################################
+  # API Gateway
+  ####################################################
+  RiftScribeApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: RiftScribeAPI
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  # Create /generate-saga resource
+  GenerateSagaResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RiftScribeApi
+      ParentId: !GetAtt RiftScribeApi.RootResourceId
+      PathPart: generate-saga
+
+  # POST method on /generate-saga
+  GenerateSagaMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RiftScribeApi
+      ResourceId: !Ref GenerateSagaResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RiftScribeFunction.Arn}/invocations
+
+  # OPTIONS method for CORS preflight
+  GenerateSagaOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RiftScribeApi
+      ResourceId: !Ref GenerateSagaResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  RiftScribeApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - GenerateSagaMethod
+      - GenerateSagaOptionsMethod
+    Properties:
+      RestApiId: !Ref RiftScribeApi
+      StageName: production
+
+  ####################################################
+  # Lambda → API Gateway Permission
+  ####################################################
+  RiftScribePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref RiftScribeFunction
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RiftScribeApi}/*
+
 Outputs:
   RiftScribeApiEndpoint:
-    Description: "API Gateway endpoint URL for the RiftScribe backend"
-    Value: !Sub "https://${RiftScribeApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/generate-saga/"
-  GeneratedImagesBucketName:
-    Description: "Name of the S3 bucket for generated images"
-    Value: !Ref GeneratedImagesBucket
+    Description: API URL
+    Value: !Sub "https://${RiftScribeApi}.execute-api.${AWS::Region}.amazonaws.com/production/generate-saga/"
+  LambdaFunctionArn:
+    Description: Lambda Function ARN
+    Value: !GetAtt RiftScribeFunction.Arn

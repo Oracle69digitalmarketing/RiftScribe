@@ -2,8 +2,6 @@
   "name": "riftscribe-lambda",
   "version": "1.0.0",
   "description": "Dependencies for the RiftScribe backend Lambda function.",
-  "main": "handler.js",
-  "description": "",
   "main": "handler.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,11 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.7.2"
-  },
-  "devDependencies": {
-    "esbuild": "^0.23.0"
     "@aws-sdk/client-bedrock-runtime": "^3.927.0",
     "axios": "^1.13.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.23.1"
   }
 }
