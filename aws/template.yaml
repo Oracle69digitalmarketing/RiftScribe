@@ -9,6 +9,12 @@ Parameters:
     Type: String
     Description: Your Riot Games API key for fetching live player data.
     NoEcho: true
+    Description: "Your Riot Games API key for fetching live player data. This is a required parameter."
+    NoEcho: true
+  ForceRedeploy:
+    Type: String
+    Description: "A dummy parameter to force redeployment."
+    Default: "true"
 
 Resources:
   RiftScribeApi:
