@@ -55,7 +55,7 @@ export function analyzeMatches(matches: Match[], summonerName: string): PlayerIn
         const player = match.info.participants.find(p => p.summonerName === summonerName);
         if (!player) continue;
 
-            const player = match.info.participants.find(p => p.summonerName === summonerName);
+            const player = match.info.participants.find(p => p.summonerName.toLowerCase() === summonerName.toLowerCase());
             if (!player) continue;
 
             if (player.win) {
