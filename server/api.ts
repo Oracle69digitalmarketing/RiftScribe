@@ -1,9 +1,10 @@
+import { PlayerInsights } from '../common/dataProcessor';
 import { Persona } from '../personaData';
 import { Saga } from '../sagaData';
 
 const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT;
 
-export async function generateSaga(summonerName: string, persona: Persona): Promise<{ saga: Saga, insights: Record<string, unknown> }> {
+export async function generateSaga(summonerName: string, persona: Persona): Promise<{ saga: Saga, insights: any }> {
     
     console.log("Calling LIVE AWS backend at:", API_ENDPOINT);
 

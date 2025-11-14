@@ -52,10 +52,8 @@ export function analyzeMatches(matches: Match[], summonerName: string): PlayerIn
                 console.warn("Skipping a malformed match record:", match?.metadata?.matchId);
                 continue;
             }
-        const player = match.info.participants.find(p => p.summonerName === summonerName);
-        if (!player) continue;
 
-            const player = match.info.participants.find(p => p.summonerName.toLowerCase() === summonerName.toLowerCase());
+            const player = match.info.participants.find(p => p.summonerName === summonerName);
             if (!player) continue;
 
             if (player.win) {
