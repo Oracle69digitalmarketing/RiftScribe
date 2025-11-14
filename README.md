@@ -12,6 +12,14 @@ The application allows a player to choose a "storyteller" persona—inspired by 
 
 This project was built for the **Rift Rewind Hackathon** and is a fully functional, cloud-native application.
 
+## 🎥 Demo Video
+
+Watch our 3-minute video to see RiftScribe in action and get a full overview of the project's features and technical architecture.
+
+**[Click here to watch the demo video](https://your-video-link-here.com)**
+
+---
+
 ## 🏛️ Architecture
 
 The application is built on a serverless architecture using AWS services, ensuring scalability, security, and performance. The frontend is decoupled from the backend, communicating via a secure REST API.
