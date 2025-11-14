@@ -14,9 +14,9 @@ This project was built for the **Rift Rewind Hackathon** and is a fully function
 
 ## 🎥 Demo Video
 
-Watch our 3-minute video to see RiftScribe in action and get a full overview of the project's features and technical architecture.
+Watch our 2-minute video to see RiftScribe in action and get a full overview of the project's features and technical architecture.
 
-**[Click here to watch the demo video](https://your-video-link-here.com)**
+**[Click here to watch the demo video]([https://your-video-link-here.com](https://youtu.be/xnuHg1QWf1U?si=y10AWp-97TSHnKwU))**
 
 ---
 
