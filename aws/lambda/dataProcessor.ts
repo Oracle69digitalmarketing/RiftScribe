@@ -1,5 +1,5 @@
 import { PlayerInsights } from '../../common/dataProcessor';
-import { Match, Participant } from '../../common/sampleMatchData';
+
 export interface Participant {
     summonerName: string;
     championName: string;
@@ -19,15 +19,6 @@ export interface Match {
         participants: Participant[];
     };
 }
-
-export interface ChampionWinRate {
-    name: string;
-    wins: number;
-    games: number;
-    winRate: string;
-}
-
-import { PlayerInsights } from '../../common/dataProcessor';
 
 export function analyzeMatches(matches: Match[], summonerName: string): PlayerInsights {
     if (!matches || matches.length === 0) {
@@ -51,14 +42,24 @@ export function analyzeMatches(matches: Match[], summonerName: string): PlayerIn
     let bestKDAValue = -1;
     let bestKDA = { champion: 'Unknown', kda: '0.00' };
 
-    for (const match of matches) {
-        const player = match.info.participants.find(p => p.summonerName.toLowerCase() === summonerName.toLowerCase());
-        if (!player) continue;
+    // Sort matches by game creation time, oldest to newest
+    matches.sort((a, b) => a.info.gameCreation - b.info.gameCreation);
 
-        if (player.win) {
-            wins++;
-            currentWinningStreak++;
-        } else {
+    for (const match of matches) {
+        try {
+            // Defensive check for match structure
+            if (!match?.info?.participants) {
+                console.warn("Skipping a malformed match record:", match?.metadata?.matchId);
+                continue;
+            }
+
+            const player = match.info.participants.find(p => p.summonerName === summonerName);
+            if (!player) continue;
+
+            if (player.win) {
+                wins++;
+                currentWinningStreak++;
+            } else {
             longestWinningStreak = Math.max(longestWinningStreak, currentWinningStreak);
             currentWinningStreak = 0;
 
@@ -81,8 +82,12 @@ export function analyzeMatches(matches: Match[], summonerName: string): PlayerIn
             bestKDAValue = kda;
             bestKDA = { champion: player.championName, kda: kda.toFixed(2) };
         }
+        } catch (error) {
+            console.error(`Failed to process match ${match?.metadata?.matchId}. Skipping.`, error);
+        }
     }
 
+    // Final check for the winning streak
     longestWinningStreak = Math.max(longestWinningStreak, currentWinningStreak);
 
     const mostPlayedChampions = Object.entries(championStats)
@@ -100,11 +105,13 @@ export function analyzeMatches(matches: Match[], summonerName: string): PlayerIn
         : { name: 'Their own ambition', losses: 0 };
 
     const totalGames = matches.length;
+    const finalWinRate = totalGames > 0 ? `${((wins / totalGames) * 100).toFixed(0)}%` : '0%';
+
     return {
         totalGames,
         wins,
         losses: totalGames - wins,
-        winRate: `${((wins / totalGames) * 100).toFixed(0)}%`,
+        winRate: finalWinRate,
         longestWinningStreak,
         mostPlayedChampions,
         bestKDA,
